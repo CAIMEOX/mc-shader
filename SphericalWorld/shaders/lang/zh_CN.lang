@@ -1,0 +1,19 @@
+screen.GEOMETRY=球面几何
+screen.ATMOSPHERE=内球壳大气
+
+profile.GENTLE=柔和
+profile.SPHERICAL=球面
+profile.CLOSED=闭合
+
+option.SPHERE_RADIUS=球面半径
+comment.SPHERE_RADIUS=以方块计的半径；对跖点位于 π 倍半径的水平距离处。
+option.WARP_STRENGTH=几何变换强度
+comment.WARP_STRENGTH=在欧氏位置与完整内球面嵌入之间混合。
+option.VERTICAL_FOLLOW=垂直法线跟随
+comment.VERTICAL_FOLLOW=让建筑高度方向转向局部内球面法线。
+option.ANTIPODE_GLOW=对跖点辉光
+comment.ANTIPODE_GLOW=高亮聚集在头顶对跖点附近的几何。
+option.SPHERE_FOG=球壳雾
+comment.SPHERE_FOG=让远处卷曲的几何融入冷色内球壳大气。
+option.HORIZON_TINT=地平线色调
+comment.HORIZON_TINT=当地形向玩家四周上卷时加入蓝色色调。

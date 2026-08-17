@@ -1,0 +1,21 @@
+screen.CURVATURE=双曲几何
+screen.BOUNDARY=理想边界
+
+profile.GENTLE=柔和
+profile.HYPERBOLIC=双曲
+profile.ESCHER=埃舍尔
+
+option.CURVATURE_RADIUS=曲率半径
+comment.CURVATURE_RADIUS=半径越小，世界弯曲和压缩越强；单位为方块。
+option.WARP_STRENGTH=几何变换强度
+comment.WARP_STRENGTH=在欧氏位置与 Poincaré 嵌入之间混合。
+option.VERTICAL_COMPRESSION=垂直压缩
+comment.VERTICAL_COMPRESSION=让垂直结构在接近理想边界时逐渐缩小。
+option.CHART_ROTATION=坐标图旋转
+comment.CHART_ROTATION=绕玩家旋转上半平面坐标图及其理想点。
+option.BOUNDARY_FOG=边界雾
+comment.BOUNDARY_FOG=让聚集到有限 Poincaré 边界附近的几何逐渐融入雾色。
+option.BOUNDARY_GLOW=边界辉光
+comment.BOUNDARY_GLOW=在理想边界前加入一圈冷色测地线辉光。
+option.BOUNDARY_DARKEN=边界压暗
+comment.BOUNDARY_DARKEN=压暗双曲无穷远处几何最密集的区域。

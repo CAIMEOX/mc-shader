@@ -1,0 +1,23 @@
+screen.GEOMETRY=Sol 几何
+screen.LOOK=方向视觉
+
+profile.GENTLE=柔和
+profile.SOL=Sol
+profile.IMPOSSIBLE=不可能
+
+option.SOL_SCALE=Sol 高度尺度
+comment.SOL_SCALE=产生一个指数单位所需的垂直格数；数值越小，变形越快。
+option.WARP_STRENGTH=几何变换强度
+comment.WARP_STRENGTH=在欧氏几何与完整 Sol 变换之间混合。
+option.ANISOTROPY=主轴各向异性
+comment.ANISOTROPY=控制两条水平主轴互为倒数的膨胀与压缩。
+option.GEODESIC_BEND=测地线鞍面
+comment.GEODESIC_BEND=让两条主轴上的长路径向相反的垂直方向弯曲。
+option.AXIS_ROTATION=主轴旋转
+comment.AXIS_ROTATION=在 Minecraft X/Z 平面中旋转 Sol 的膨胀和压缩方向。
+option.AXIS_TINT=主轴着色
+comment.AXIS_TINT=在远处用蓝色标出膨胀轴，用橙色标出压缩轴。
+option.DISTANCE_FOG=距离雾
+comment.DISTANCE_FOG=让密集拉伸的几何逐渐融入深色中性雾。
+option.DISTANCE_GLOW=主轴辉光
+comment.DISTANCE_GLOW=沿两条 Sol 主方向加入轻微辉光。

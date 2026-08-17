@@ -1,0 +1,23 @@
+screen.GEOMETRY=Sol Geometry
+screen.LOOK=Directional Look
+
+profile.GENTLE=Gentle
+profile.SOL=Sol
+profile.IMPOSSIBLE=Impossible
+
+option.SOL_SCALE=Sol height scale
+comment.SOL_SCALE=Vertical blocks required for one exponential unit. Smaller values distort faster.
+option.WARP_STRENGTH=Geometry warp
+comment.WARP_STRENGTH=Blends Euclidean geometry with the complete Sol transform.
+option.ANISOTROPY=Axis anisotropy
+comment.ANISOTROPY=Controls reciprocal expansion and compression of the two horizontal axes.
+option.GEODESIC_BEND=Geodesic saddle
+comment.GEODESIC_BEND=Bends long paths on the two principal axes toward opposite vertical directions.
+option.AXIS_ROTATION=Axis rotation
+comment.AXIS_ROTATION=Rotates Sol's expanding and compressing directions in the Minecraft X/Z plane.
+option.AXIS_TINT=Axis tint
+comment.AXIS_TINT=Marks the expanding axis blue and the compressing axis orange in the distance.
+option.DISTANCE_FOG=Distance fog
+comment.DISTANCE_FOG=Fades dense stretched geometry into a dark neutral fog.
+option.DISTANCE_GLOW=Axis glow
+comment.DISTANCE_GLOW=Adds a subtle glow along the two principal Sol directions.

@@ -1,0 +1,21 @@
+screen.CURVATURE=Hyperbolic Geometry
+screen.BOUNDARY=Ideal Boundary
+
+profile.GENTLE=Gentle
+profile.HYPERBOLIC=Hyperbolic
+profile.ESCHER=Escher
+
+option.CURVATURE_RADIUS=Curvature radius
+comment.CURVATURE_RADIUS=Smaller radii bend and compress the world more strongly. Measured in blocks.
+option.WARP_STRENGTH=Geometry warp
+comment.WARP_STRENGTH=Blends between Euclidean positions and the Poincare embedding.
+option.VERTICAL_COMPRESSION=Vertical compression
+comment.VERTICAL_COMPRESSION=Shrinks vertical geometry toward the ideal boundary.
+option.CHART_ROTATION=Chart rotation
+comment.CHART_ROTATION=Rotates the upper-half-plane chart and its ideal point around the player.
+option.BOUNDARY_FOG=Boundary fog
+comment.BOUNDARY_FOG=Fades geometry as it accumulates near the finite Poincare boundary.
+option.BOUNDARY_GLOW=Boundary glow
+comment.BOUNDARY_GLOW=Adds a cool geodesic ring before the ideal boundary.
+option.BOUNDARY_DARKEN=Boundary darkening
+comment.BOUNDARY_DARKEN=Darkens the densest region near hyperbolic infinity.

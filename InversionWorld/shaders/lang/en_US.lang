@@ -1,0 +1,30 @@
+screen.SPHERE=Inversion Sphere
+screen.STABILITY=Singularity Guard
+screen.CAUSTIC=Sphere Caustic
+
+profile.SUBTLE=Subtle
+profile.INVERSION=Inversion
+profile.INSIDE_OUT=Inside Out
+
+option.INVERSION_X=Sphere X
+comment.INVERSION_X=World X coordinate of the inversion sphere center.
+option.INVERSION_Y=Sphere Y
+comment.INVERSION_Y=World Y coordinate of the inversion sphere center.
+option.INVERSION_Z=Sphere Z
+comment.INVERSION_Z=World Z coordinate of the inversion sphere center.
+option.INVERSION_RADIUS=Sphere radius
+comment.INVERSION_RADIUS=Points on this world-space sphere remain fixed.
+option.INVERSION_REACH=Effect reach
+comment.INVERSION_REACH=Restores ordinary space smoothly at this multiple of the sphere radius.
+option.INVERSION_BLEND=Inversion blend
+comment.INVERSION_BLEND=Blends ordinary geometry with the camera-anchored inverted world.
+option.INVERSION_CORE_RADIUS=Core radius
+comment.INVERSION_CORE_RADIUS=Replaces the infinite mathematical singularity with a finite core.
+option.MAX_INVERSION_SCALE=Maximum scale
+comment.MAX_INVERSION_SCALE=Caps vertex expansion near the protected core.
+option.SINGULARITY_GLOW=Sphere glow
+comment.SINGULARITY_GLOW=Brightness of the projected inversion-sphere caustic.
+option.SINGULARITY_WIDTH=Sphere ring width
+comment.SINGULARITY_WIDTH=Screen-space thickness of the caustic ring.
+option.SINGULARITY_VIGNETTE=Sphere interior
+comment.SINGULARITY_VIGNETTE=Darkens the screen area inside the projected sphere.

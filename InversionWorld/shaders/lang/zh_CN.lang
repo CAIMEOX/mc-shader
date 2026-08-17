@@ -1,0 +1,30 @@
+screen.SPHERE=反演球
+screen.STABILITY=奇点保护
+screen.CAUSTIC=球面焦散
+
+profile.SUBTLE=轻微
+profile.INVERSION=反演
+profile.INSIDE_OUT=内外翻转
+
+option.INVERSION_X=球心 X
+comment.INVERSION_X=反演球球心的世界 X 坐标。
+option.INVERSION_Y=球心 Y
+comment.INVERSION_Y=反演球球心的世界 Y 坐标。
+option.INVERSION_Z=球心 Z
+comment.INVERSION_Z=反演球球心的世界 Z 坐标。
+option.INVERSION_RADIUS=球半径
+comment.INVERSION_RADIUS=位于这个世界空间球面上的点保持不动。
+option.INVERSION_REACH=作用范围
+comment.INVERSION_REACH=在球半径的这个倍数处平滑恢复普通空间。
+option.INVERSION_BLEND=反演混合
+comment.INVERSION_BLEND=在普通几何与观察者锚定的反演世界之间混合。
+option.INVERSION_CORE_RADIUS=核心半径
+comment.INVERSION_CORE_RADIUS=用有限核心代替数学上无限的奇点。
+option.MAX_INVERSION_SCALE=最大倍率
+comment.MAX_INVERSION_SCALE=限制保护核心附近的顶点放大。
+option.SINGULARITY_GLOW=球面辉光
+comment.SINGULARITY_GLOW=投影反演球焦散环的亮度。
+option.SINGULARITY_WIDTH=球环宽度
+comment.SINGULARITY_WIDTH=焦散环在屏幕空间中的厚度。
+option.SINGULARITY_VIGNETTE=球内压暗
+comment.SINGULARITY_VIGNETTE=压暗投影球面内部的屏幕区域。

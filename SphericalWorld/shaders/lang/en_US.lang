@@ -1,0 +1,19 @@
+screen.GEOMETRY=Spherical Geometry
+screen.ATMOSPHERE=Inner-Shell Atmosphere
+
+profile.GENTLE=Gentle
+profile.SPHERICAL=Spherical
+profile.CLOSED=Closed
+
+option.SPHERE_RADIUS=Sphere radius
+comment.SPHERE_RADIUS=Radius in blocks. The antipode lies at pi times this horizontal distance.
+option.WARP_STRENGTH=Geometry warp
+comment.WARP_STRENGTH=Blends Euclidean positions with the complete inner-sphere embedding.
+option.VERTICAL_FOLLOW=Vertical normal follow
+comment.VERTICAL_FOLLOW=Rotates building height toward the local inward sphere normal.
+option.ANTIPODE_GLOW=Antipode glow
+comment.ANTIPODE_GLOW=Highlights geometry accumulating around the overhead antipode.
+option.SPHERE_FOG=Sphere fog
+comment.SPHERE_FOG=Fades distant wrapped geometry into a cool inner-shell atmosphere.
+option.HORIZON_TINT=Horizon tint
+comment.HORIZON_TINT=Adds a blue tint as terrain curves upward around the player.
