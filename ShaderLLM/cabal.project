@@ -1,0 +1,9 @@
+packages: codegen
+
+source-repository-package
+  type: git
+  location: https://github.com/CAIMEOX/language-glsl.git
+  tag: f666083aacae4f7e9ce97c17f1fe562ee4b4046c
+
+package qwen-codegen
+  ghc-options: -Werror

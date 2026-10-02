@@ -1,0 +1,57 @@
+cabal-version: 3.0
+name: qwen-codegen
+version: 0.1.0.0
+build-type: Simple
+
+common defaults
+  default-language: GHC2021
+  ghc-options: -Wall -O2
+  build-depends: base >=4.18 && <5
+
+library
+  import: defaults
+  hs-source-dirs: src
+  exposed-modules:
+    Qwen.Constants
+    Qwen.Datapack
+    Qwen.Font
+    Qwen.GLSL
+    Qwen.Layout
+    Qwen.Limits
+    Qwen.Model
+    Qwen.Operator
+    Qwen.Pipeline
+    Qwen.Shader
+    Qwen.Tokenizer
+    Qwen.Weights
+  build-depends:
+    aeson >=2.2 && <2.4,
+    binary,
+    bytestring,
+    containers,
+    directory,
+    filepath,
+    JuicyPixels >=3.3 && <3.4,
+    language-glsl ==0.5.0.0,
+    pretty,
+    text,
+    unicode-data >=0.8 && <0.9,
+    vector >=0.13 && <0.14
+
+executable qwen-codegen
+  import: defaults
+  hs-source-dirs: app
+  main-is: Main.hs
+  build-depends: qwen-codegen
+
+test-suite shader-semantics
+  import: defaults
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is: Main.hs
+  build-depends:
+    qwen-codegen,
+    language-glsl,
+    pretty,
+    directory,
+    filepath

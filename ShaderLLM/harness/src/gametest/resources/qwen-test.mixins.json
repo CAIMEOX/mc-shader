@@ -1,0 +1,1 @@
+{"required":true,"package":"dev.caimeo.qwen.mixin","compatibilityLevel":"JAVA_25","client":["PostChainAccess","InitialVsync"],"injectors":{"defaultRequire":1}}

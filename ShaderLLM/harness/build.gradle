@@ -1,0 +1,49 @@
+plugins { id 'net.fabricmc.fabric-loom' version '1.17.13' }
+version='0.1.0'
+group='dev.caimeo.qwen'
+repositories { mavenCentral() }
+dependencies {
+    minecraft 'com.mojang:minecraft:26.3'
+    implementation 'net.fabricmc:fabric-loader:0.19.5'
+    implementation 'net.fabricmc.fabric-api:fabric-api:0.160.4+26.3'
+}
+java { toolchain.languageVersion=JavaLanguageVersion.of(25) }
+sourceSets {
+    play {
+        compileClasspath += sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+    }
+}
+loom {
+    mods { qwen_play { sourceSet sourceSets.play } }
+    runs {
+        playClient {
+            client()
+            source sourceSets.play
+            runDir '../playground'
+            vmArg '-Xmx6G'
+            programArgs '--quickPlaySingleplayer','Qwen Playground'
+        }
+    }
+}
+fabricApi {
+    configureTests {
+        createSourceSet=true
+        modId='qwen-test'
+        enableGameTests=false
+        enableClientGameTests=true
+        eula=true
+    }
+}
+tasks.named('processGametestResources') {
+    from('../build/reference/fixtures.json')
+    from('../build/configuration-tests/probes.json')
+}
+tasks.named('runClientGameTest') {
+    jvmArgs '-Xmx6G'
+    doFirst {
+        copy { from('../build/resourcepack.zip'); into(layout.buildDirectory.dir('run/clientGameTest/resourcepacks')); rename { 'qwen.zip' } }
+        copy { from('../build/probes.zip'); into(layout.buildDirectory.dir('run/clientGameTest/resourcepacks')); rename { 'qwen-probes.zip' } }
+        copy { from('../build/datapack.zip'); into(layout.buildDirectory.dir('run/clientGameTest')); rename { 'qwen-datapack.zip' } }
+    }
+}

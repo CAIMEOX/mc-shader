@@ -1,0 +1,1 @@
+{"schemaVersion":1,"id":"qwen_play","version":"0.1.0","name":"Qwen Shader Playground","environment":"client","entrypoints":{"client":["dev.caimeo.qwen.play.QwenPlayClient"]},"depends":{"fabric-api":"*","minecraft":"26.3"}}

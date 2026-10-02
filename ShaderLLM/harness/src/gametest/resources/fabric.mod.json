@@ -1,0 +1,1 @@
+{"schemaVersion":1,"id":"qwen_test","version":"0.1.0","name":"Qwen Native Tests","environment":"*","entrypoints":{"fabric-client-gametest":["dev.caimeo.qwen.QwenClientTest"]},"mixins":["qwen-test.mixins.json"],"depends":{"fabric-api":"*","minecraft":"26.3"}}
