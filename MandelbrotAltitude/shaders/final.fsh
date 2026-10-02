@@ -3,10 +3,11 @@
 // User-facing shader options. Iris discovers the values in square brackets.
 #define START_ALTITUDE 64.0 // [0.0 32.0 64.0 96.0 128.0] Height where zoom x1 begins
 #define BLOCKS_PER_DOUBLING 24.0 // [8.0 12.0 16.0 24.0 32.0 48.0 64.0] Vertical blocks per 2x zoom
+#define VOID_TWIST_PERIOD 384.0 // [128.0 192.0 256.0 384.0 512.0 768.0 1024.0] Downward blocks per spiral turn
 #define PAN_PERIOD 2000.0 // [500.0 1000.0 1500.0 2000.0 3000.0 5000.0 10000.0] Blocks per horizontal navigation cycle
 #define PAN_RANGE 0.65 // [0.00 0.25 0.40 0.55 0.65 0.80 1.00] Maximum sky-plane displacement
 #define MAX_ITERATIONS 128 // [64 96 128 160 192 256] Fractal detail and GPU cost
-#define MAX_ZOOM 131072.0 // [1024.0 4096.0 16384.0 65536.0 131072.0 262144.0] Float precision safety limit
+#define MAX_ZOOM_STEPS 96 // [17 24 40 60 80 96] Maximum binary zoom exponent
 #define FRACTAL_OPACITY 0.90 // [0.50 0.65 0.75 0.85 0.90 0.95 1.00] Blend over vanilla sky
 
 varying vec2 texcoord;
@@ -25,7 +26,10 @@ uniform bool hasCeiling;
 uniform int isEyeInWater;
 
 const float TAU = 6.28318530718;
-const vec2 DEEP_ZOOM_CENTER = vec2(-0.743643887, 0.131825904);
+const vec2 DEEP_ZOOM_CENTER = vec2(
+    -0.743643887037158704752191506114774,
+    0.131825904205311970493132056385139
+);
 
 vec3 palette(float t) {
     vec3 base = vec3(0.42, 0.36, 0.48);
@@ -80,6 +84,8 @@ vec3 mandelbrotColor(vec2 c, int iterationBudget) {
     return pow(clamp(color, 0.0, 1.0), vec3(1.18));
 }
 
+#include "/lib/mandelbrot_reference.glsl"
+
 vec3 viewRayToWorldDirection(vec2 uv) {
     vec2 ndc = uv * 2.0 - 1.0;
     vec4 viewPosition = gbufferProjectionInverse * vec4(ndc, 1.0, 1.0);
@@ -108,23 +114,60 @@ void main() {
     vec2 skyPlane = vec2(worldDirection.z, worldDirection.x)
         / max(1.0 + worldDirection.y, 0.08);
 
-    float altitudeSteps = max(eyeAltitude - START_ALTITUDE, 0.0)
+    // Falling below the reference plane adds a seamless corkscrew motion. It
+    // continues after the configured zoom depth, preserving endless motion.
+    float descentBlocks = max(START_ALTITUDE - eyeAltitude, 0.0);
+    float voidAngle = mod(descentBlocks, VOID_TWIST_PERIOD) * (TAU / VOID_TWIST_PERIOD);
+    float cosVoidAngle = cos(voidAngle);
+    float sinVoidAngle = sin(voidAngle);
+    skyPlane = mat2(cosVoidAngle, -sinVoidAngle, sinVoidAngle, cosVoidAngle) * skyPlane;
+
+    // Distance from the reference plane drives zoom in either direction:
+    // flying upward and falling below zero both dive deeper into the fractal.
+    float altitudeSteps = abs(eyeAltitude - START_ALTITUDE)
         / max(BLOCKS_PER_DOUBLING, 1.0);
-    float zoom = min(exp2(altitudeSteps), MAX_ZOOM);
+    float requestedSteps = min(altitudeSteps, float(MAX_ZOOM_STEPS));
+    bool referenceValid = mandelbrotReferenceIsValid();
+    // A missing/not-yet-published mod texture remains a usable FP32 pack. The
+    // logarithmic cap avoids ever constructing a huge, overflowing zoom value.
+    float effectiveSteps = referenceValid
+        ? requestedSteps
+        : min(requestedSteps, 17.0);
+    float inverseZoom = exp2(-effectiveSteps);
 
     // The unshifted X/Z coordinates navigate a smooth, bounded loop. The
     // bounded sine mapping keeps the fractal visible even far from world origin.
-    vec2 worldXZ = vec2(float(cameraPositionInt.z), float(cameraPositionInt.x))
+    int panPeriodInt = int(PAN_PERIOD);
+    ivec2 cameraXZInt = ivec2(cameraPositionInt.z, cameraPositionInt.x);
+    ivec2 panQuotient = cameraXZInt / panPeriodInt;
+    ivec2 panRemainder = cameraXZInt - panQuotient * panPeriodInt;
+    vec2 worldXZ = vec2(panRemainder)
         + vec2(cameraPositionFract.z, cameraPositionFract.x);
-    vec2 panPhase = mod(worldXZ, vec2(PAN_PERIOD)) * (TAU / PAN_PERIOD);
+    // Double modulo makes negative coordinates explicit and stable across
+    // drivers: wrappedXZ is always in [0, PAN_PERIOD).
+    vec2 wrappedXZ = mod(mod(worldXZ, vec2(PAN_PERIOD)) + vec2(PAN_PERIOD), vec2(PAN_PERIOD));
+    vec2 panPhase = wrappedXZ * (TAU / PAN_PERIOD);
     vec2 playerPan = sin(panPhase) * PAN_RANGE;
-    vec2 complexCoordinate = DEEP_ZOOM_CENTER + (skyPlane * 2.55 + playerPan) / zoom;
+    vec2 deltaC = (skyPlane * 2.55 + playerPan) * inverseZoom;
+    vec2 complexCoordinate = DEEP_ZOOM_CENTER + deltaC;
 
     int iterationBudget = int(min(
         float(MAX_ITERATIONS),
-        72.0 + 7.0 * log(zoom) / log(2.0)
+        72.0 + 7.0 * effectiveSteps
     ));
-    vec3 fractalColor = mandelbrotColor(complexCoordinate, iterationBudget);
+    vec3 fractalColor;
+    if (!referenceValid || effectiveSteps <= 12.0) {
+        fractalColor = mandelbrotColor(complexCoordinate, iterationBudget);
+    } else if (effectiveSteps >= 13.0) {
+        fractalColor = mandelbrotPerturbationColor(deltaC, effectiveSteps);
+    } else {
+        // Both paths are well-conditioned in this one-step handoff band. The
+        // branch is uniform across the frame, so ordinary pixels do not diverge.
+        vec3 directColor = mandelbrotColor(complexCoordinate, iterationBudget);
+        vec3 perturbationColor = mandelbrotPerturbationColor(deltaC, effectiveSteps);
+        float deepBlend = smoothstep(12.0, 13.0, effectiveSteps);
+        fractalColor = mix(directColor, perturbationColor, deepBlend);
+    }
 
     // Every clear-depth pixel is part of the procedural sky. This deliberately
     // fills the otherwise visible strip beyond Minecraft's loaded terrain.
