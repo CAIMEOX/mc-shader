@@ -1,0 +1,8 @@
+{
+  "key.category.flame_play.controls": "火焰",
+  "key.flame_play.stage": "重建演示场景",
+  "key.flame_play.rescan": "更新地形快照",
+  "key.flame_play.ignite": "点燃准星方块",
+  "key.flame_play.quench": "灭火",
+  "message.flame_play.controls": "Flame: R 点燃准星方块 · X 灭火 · F7 更新地形 · F6 重建场景 · WASD / 鼠标观察"
+}

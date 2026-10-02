@@ -1,0 +1,8 @@
+{
+  "key.category.flame_play.controls": "Flame",
+  "key.flame_play.stage": "Build demonstration scene",
+  "key.flame_play.rescan": "Update terrain snapshot",
+  "key.flame_play.ignite": "Ignite targeted block",
+  "key.flame_play.quench": "Extinguish flames",
+  "message.flame_play.controls": "Flame: R ignite · X extinguish · F7 update terrain · F6 rebuild scene · WASD / mouse to explore"
+}

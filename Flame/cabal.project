@@ -1,0 +1,4 @@
+packages: codegen
+
+package flame-codegen
+  ghc-options: -Werror
