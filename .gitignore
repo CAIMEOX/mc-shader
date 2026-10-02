@@ -8,6 +8,8 @@ docs
 /FractalWorld
 /ReverseParallaxWorld
 /ShaderHarness
+/ClothWorld
+/ClothWorldMod
 /research
 tests
 tools
