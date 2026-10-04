@@ -1,0 +1,38 @@
+cabal-version: 3.0
+name: signal-codegen
+version: 0.1.0.0
+build-type: Simple
+
+common defaults
+    default-language: GHC2021
+    ghc-options: -Wall -O1
+    build-depends: base >=4.18 && <5
+
+library
+    import: defaults
+    hs-source-dirs: src
+    exposed-modules:
+        Signal.Protocol
+        Signal.Pack
+        Signal.Water
+        Signal.Rotate
+        Signal.Frame
+        Signal.PingPong
+        Signal.Fall
+        Signal.Stream
+        Signal.RotateStream
+    other-modules: Signal.Json
+    build-depends: directory, filepath, bytestring
+
+executable signal-codegen
+    import: defaults
+    hs-source-dirs: app
+    main-is: Main.hs
+    build-depends: signal-codegen
+
+test-suite semantics
+    import: defaults
+    type: exitcode-stdio-1.0
+    hs-source-dirs: test
+    main-is: Main.hs
+    build-depends: signal-codegen

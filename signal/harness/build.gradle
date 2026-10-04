@@ -1,0 +1,129 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version '1.17.13'
+}
+
+version = '0.1.0'
+group = 'dev.caimeo.signal'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    minecraft 'com.mojang:minecraft:26.3'
+    implementation 'net.fabricmc:fabric-loader:0.19.5'
+    implementation 'net.fabricmc.fabric-api:fabric-api:0.160.4+26.3'
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
+}
+
+sourceSets {
+    play {
+        compileClasspath += sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+    }
+}
+
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = 'signal-test'
+        enableGameTests = false
+        enableClientGameTests = true
+        eula = true
+    }
+}
+
+loom {
+    mods {
+        signal_play {
+            sourceSet sourceSets.play
+        }
+    }
+    runs {
+        playClient {
+            client()
+            source sourceSets.play
+            runDir '../playground'
+            vmArg '-Dsignal.play=true'
+            if (providers.gradleProperty('playSmoke').isPresent()) {
+                vmArg '-Dsignal.play.smoke=true'
+            }
+            programArgs '--quickPlaySingleplayer', 'Signal Playground', '--width', '1280', '--height', '720'
+        }
+        probeClient {
+            client()
+            source sourceSets.gametest
+            runDir '../playground'
+            vmArg '-Dsignal.probe=true'
+            if (providers.gradleProperty('fall').isPresent()) {
+                vmArg '-Dsignal.fall=true'
+            }
+            if (providers.gradleProperty('rotateStream').isPresent()) {
+                vmArg '-Dsignal.rotateStream=true'
+                vmArg '-Dsignal.streamStage=' + providers.gradleProperty('streamStage').getOrElse('full')
+                if (providers.gradleProperty('rotateActivities').isPresent()) {
+                    vmArg '-Dsignal.rotateActivities=true'
+                }
+            }
+            if (providers.gradleProperty('pingPong').isPresent()) {
+                vmArg '-Dsignal.pingpong=true'
+            }
+            if (providers.gradleProperty('rotate').isPresent()) {
+                vmArg '-Dsignal.rotate=true'
+                vmArg '-Dsignal.rotateStage=' + providers.gradleProperty('rotateStage').getOrElse('full')
+                if (providers.gradleProperty('rotatePowers').isPresent()) {
+                    vmArg '-Dsignal.rotatePowers=' + providers.gradleProperty('rotatePowers').get()
+                }
+                if (providers.gradleProperty('rotateActivities').isPresent()) {
+                    vmArg '-Dsignal.rotateActivities=true'
+                }
+                if (providers.gradleProperty('rotateFps').isPresent()) {
+                    vmArg '-Dsignal.rotateFps=true'
+                }
+            }
+            if (providers.gradleProperty('water').isPresent()) {
+                vmArg '-Dsignal.water=true'
+            }
+            if (providers.gradleProperty('waterSpeed').isPresent()) {
+                vmArg '-Dsignal.speed=true'
+            }
+            if (providers.gradleProperty('waterFour').isPresent()) {
+                vmArg '-Dsignal.four=true'
+            }
+            ['guardMs', 'windowMs', 'speedCases', 'skipScan'].each { property ->
+                if (providers.gradleProperty(property).isPresent()) {
+                    vmArg '-Dsignal.' + property + '=' + providers.gradleProperty(property).get()
+                }
+            }
+            if (providers.gradleProperty('stopwatchOnly').isPresent()) {
+                vmArg '-Dsignal.stopwatchOnly=true'
+            }
+            if (providers.gradleProperty('signalPower').isPresent()) {
+                vmArg '-Dsignal.power=' + providers.gradleProperty('signalPower').get()
+            }
+            programArgs '--quickPlaySingleplayer', 'Signal Experiment', '--width', '1280', '--height', '720'
+        }
+    }
+}
+
+tasks.named('processGametestResources') {
+    from('../build/experiment.json')
+}
+
+tasks.named('runClientGameTest') {
+    doFirst {
+        copy {
+            from('../build/resourcepack.zip')
+            into(layout.buildDirectory.dir('run/clientGameTest/resourcepacks'))
+            rename { 'signal.zip' }
+        }
+        copy {
+            from('../build/datapack.zip')
+            into(layout.buildDirectory.dir('run/clientGameTest'))
+            rename { 'signal-datapack.zip' }
+        }
+    }
+}

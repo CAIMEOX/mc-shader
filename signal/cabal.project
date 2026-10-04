@@ -1,0 +1,4 @@
+packages: codegen
+
+package signal-codegen
+  ghc-options: -Werror

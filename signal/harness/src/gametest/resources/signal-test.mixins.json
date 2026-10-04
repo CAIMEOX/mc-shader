@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "package": "dev.caimeo.signal.mixin",
+  "plugin": "dev.caimeo.signal.mixin.ObservationPlugin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "ConnectionObservation",
+    "ServerObservation",
+    "ServerTickObservation"
+  ],
+  "client": [
+    "ClientObservation",
+    "SendObservation",
+    "PostChainAccess",
+    "InitialVsync",
+    "PingChatCapture"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

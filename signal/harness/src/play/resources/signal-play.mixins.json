@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "dev.caimeo.signal.play.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "InitialVsync"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

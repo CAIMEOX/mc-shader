@@ -1,0 +1,6 @@
+{
+  "key.category.signal_play.controls": "Signal",
+  "key.signal_play.receive": "接收着色器密语",
+  "key.signal_play.cancel": "取消接收",
+  "message.signal_play.controls": "Signal：R 接收着色器密语 · X 取消 · 已启用 OP · 200 TPS"
+}

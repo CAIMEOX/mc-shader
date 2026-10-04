@@ -1,0 +1,6 @@
+{
+  "key.category.signal_play.controls": "Signal",
+  "key.signal_play.receive": "Receive shader message",
+  "key.signal_play.cancel": "Cancel reception",
+  "message.signal_play.controls": "Signal: R receive shader message · X cancel · OP enabled · 200 TPS"
+}

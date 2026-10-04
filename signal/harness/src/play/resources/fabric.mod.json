@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "signal_play",
+  "version": "0.1.0",
+  "name": "Signal Playground",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.caimeo.signal.play.SignalPlayClient"
+    ]
+  },
+  "mixins": [
+    "signal-play.mixins.json"
+  ],
+  "depends": {
+    "fabric-api": "*",
+    "minecraft": "26.3"
+  }
+}

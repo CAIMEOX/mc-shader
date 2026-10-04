@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "signal_test",
+  "version": "0.1.0",
+  "name": "Signal Timing Experiment",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-client-gametest": [
+      "dev.caimeo.signal.WorldFixtureTest"
+    ],
+    "client": [
+      "dev.caimeo.signal.SignalTimingClient"
+    ]
+  },
+  "mixins": [
+    "signal-test.mixins.json"
+  ],
+  "depends": {
+    "fabric-api": "*",
+    "minecraft": "26.3"
+  }
+}
