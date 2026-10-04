@@ -26,3 +26,5 @@ __pycache__/
 *.zip
 *.jar
 !/harness/gradle/wrapper/gradle-wrapper.jar
+
+!/docs
