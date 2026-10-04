@@ -10,6 +10,8 @@
 /dist-newstyle/
 /cabal.project.local
 
+!/docs/images
+
 # Local environments and formatter caches
 .venv*/
 .ruff_cache/
