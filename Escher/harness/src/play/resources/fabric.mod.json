@@ -1,0 +1,1 @@
+{"schemaVersion":1,"id":"escher_play","version":"0.1.0","name":"Escher Playground","environment":"client","entrypoints":{"client":["dev.caimeo.escher.play.EscherPlayClient"]},"depends":{"fabric-api":"*","minecraft":"26.3"}}

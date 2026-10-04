@@ -1,0 +1,41 @@
+cabal-version: 3.0
+name: escher-codegen
+version: 0.1.0.0
+build-type: Simple
+
+common defaults
+  default-language: GHC2021
+  ghc-options: -Wall -O1
+  build-depends: base >=4.18 && <5
+
+library
+  import: defaults
+  hs-source-dirs: src
+  exposed-modules:
+    Escher.Folding
+    Escher.Folding.Scene
+    Escher.Pack
+    Escher.Pipeline
+    Escher.Program
+    Escher.Protocol
+    Escher.Quality
+    Escher.Scene
+    Escher.Space
+  other-modules:
+    Escher.DataPack
+    Escher.Json
+  build-depends: bytestring, directory, filepath
+
+executable escher-codegen
+  import: defaults
+  main-is: Main.hs
+  hs-source-dirs: app
+  build-depends: escher-codegen
+
+test-suite semantics
+  import: defaults
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs: test
+  other-modules: FoldingSpec, SceneSpec
+  build-depends: escher-codegen

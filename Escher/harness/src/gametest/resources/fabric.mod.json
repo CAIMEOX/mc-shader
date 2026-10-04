@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "escher_test",
+  "version": "0.1.0",
+  "name": "Escher Native Tests",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-client-gametest": [
+      "dev.caimeo.escher.EscherClientTest"
+    ]
+  },
+  "mixins": [
+    "escher-test.mixins.json"
+  ],
+  "depends": {
+    "fabric-api": "*",
+    "minecraft": "26.3"
+  }
+}

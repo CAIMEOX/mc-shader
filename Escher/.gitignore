@@ -1,0 +1,28 @@
+# Generated packs, reports, and local worlds
+/build/
+/reports/
+/playground/
+/dist/
+/harness/build/
+/harness/run/
+/harness/.gradle/
+/harness/local.properties
+/dist-newstyle/
+/cabal.project.local
+
+# Local environments and formatter caches
+.venv*/
+.ruff_cache/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+.DS_Store
+
+# Compiler outputs and release archives
+*.o
+*.hi
+*.dyn_o
+*.dyn_hi
+*.zip
+*.jar
+!/harness/gradle/wrapper/gradle-wrapper.jar

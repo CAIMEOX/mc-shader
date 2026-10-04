@@ -1,0 +1,48 @@
+plugins { id 'net.fabricmc.fabric-loom' version '1.17.13' }
+version = '0.1.0'
+group = 'dev.caimeo.escher'
+repositories { mavenCentral() }
+dependencies {
+    minecraft 'com.mojang:minecraft:26.3'
+    implementation 'net.fabricmc:fabric-loader:0.19.5'
+    implementation 'net.fabricmc.fabric-api:fabric-api:0.160.4+26.3'
+}
+java { toolchain.languageVersion = JavaLanguageVersion.of(25) }
+sourceSets {
+    play {
+        compileClasspath += sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+    }
+}
+loom {
+    mods { escher_play { sourceSet sourceSets.play } }
+    runs {
+        playClient {
+            client()
+            source sourceSets.play
+            runDir '../playground'
+            vmArg '-Descher.play=true'
+            programArgs '--quickPlaySingleplayer', 'Escher Gallery'
+            if (providers.gradleProperty('playSmoke').isPresent()) vmArg '-Descher.play.smoke=true'
+            if (providers.gradleProperty('playScene').isPresent()) vmArg '-Descher.play.scene=' + providers.gradleProperty('playScene').get()
+        }
+    }
+}
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = 'escher-test'
+        enableGameTests = false
+        enableClientGameTests = true
+        eula = true
+    }
+}
+tasks.named('processGametestResources') {
+    from('../build/escher-build.json')
+}
+tasks.named('runClientGameTest') {
+    doFirst {
+        copy { from('../build/resourcepack.zip'); into(layout.buildDirectory.dir('run/clientGameTest/resourcepacks')); rename { 'escher.zip' } }
+        copy { from('../build/datapack.zip'); into(layout.buildDirectory.dir('run/clientGameTest')); rename { 'escher-datapack.zip' } }
+    }
+}

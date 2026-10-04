@@ -1,0 +1,4 @@
+packages: codegen
+
+package escher-codegen
+  ghc-options: -Werror

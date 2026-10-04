@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "dev.caimeo.escher.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "PostChainAccess"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
