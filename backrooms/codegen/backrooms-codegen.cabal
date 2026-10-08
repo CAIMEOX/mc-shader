@@ -1,0 +1,54 @@
+cabal-version: 3.0
+name: backrooms-codegen
+version: 0.1.0.0
+build-type: Simple
+
+common defaults
+  default-language: GHC2021
+  ghc-options: -Wall -O1
+  build-depends: base >=4.18 && <5
+
+library
+  import: defaults
+  hs-source-dirs: src
+  exposed-modules:
+    Backrooms.Domain
+    Backrooms.Pack
+    Backrooms.Pipeline
+    Backrooms.Program
+    Backrooms.Protocol
+    Backrooms.WorldGen
+    Backrooms.WorldGen.Density
+    Backrooms.WorldGen.Coordinates
+    Backrooms.WorldGen.Geometry
+    Backrooms.WorldGen.Floors
+    Backrooms.WorldGen.Vertical
+    Backrooms.WorldGen.Navigation
+    Backrooms.WorldGen.Partition
+    Backrooms.WorldGen.Layout
+    Backrooms.WorldGen.Furniture
+    Backrooms.WorldGen.Lighting
+    Backrooms.WorldGen.Runtime
+    Backrooms.WorldGen.Spatial
+    Backrooms.WorldGen.Materials
+    Backrooms.WorldGen.Block
+    Backrooms.WorldGen.Landmark
+    Backrooms.Structure.Nbt
+  other-modules:
+    Backrooms.DataPack
+    Backrooms.Json
+  build-depends: aeson >=2.2 && <2.4, bytestring, containers, directory, filepath, text
+
+executable backrooms-codegen
+  import: defaults
+  main-is: Main.hs
+  hs-source-dirs: app
+  build-depends: backrooms-codegen
+
+test-suite semantics
+  import: defaults
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs: test
+  other-modules: WorldGenSemantics, VerticalSemantics
+  build-depends: backrooms-codegen, aeson, bytestring, containers

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "backrooms_play",
+  "version": "0.1.0",
+  "name": "Backrooms Playground Controls",
+  "environment": "client",
+  "entrypoints": {"client": ["dev.caimeo.backrooms.play.BackroomsPlayClient"]},
+  "depends": {"fabric-api": "*", "minecraft": "26.3"}
+}

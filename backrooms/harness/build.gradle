@@ -1,0 +1,50 @@
+plugins { id 'net.fabricmc.fabric-loom' version '1.17.13' }
+version = '0.1.0'
+group = 'dev.caimeo.backrooms'
+repositories { mavenCentral() }
+dependencies {
+    minecraft 'com.mojang:minecraft:26.3'
+    implementation 'net.fabricmc:fabric-loader:0.19.5'
+    implementation 'net.fabricmc.fabric-api:fabric-api:0.160.4+26.3'
+}
+java { toolchain.languageVersion = JavaLanguageVersion.of(25) }
+sourceSets {
+    play {
+        compileClasspath += sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+    }
+}
+loom {
+    mods { backrooms_play { sourceSet sourceSets.play } }
+    runs {
+        playClient {
+            client()
+            source sourceSets.play
+            runDir '../playground'
+            vmArg '-Dbackrooms.play=true'
+            programArgs '--quickPlaySingleplayer', 'Backrooms Level 0'
+            if (providers.gradleProperty('playSmoke').isPresent()) vmArg '-Dbackrooms.play.smoke=true'
+        }
+    }
+}
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = 'backrooms-test'
+        enableGameTests = false
+        enableClientGameTests = true
+        eula = true
+    }
+}
+tasks.named('processGametestResources') {
+    from('../build/scene.json')
+    from('../build/worldgen.json')
+    from('../build/datapack') { exclude 'pack.mcmeta', '.backrooms-owned' }
+}
+tasks.named('runClientGameTest') {
+    doFirst {
+        copy { from('../build/resourcepack.zip'); into(layout.buildDirectory.dir('run/clientGameTest/resourcepacks')); rename { 'backrooms.zip' } }
+        copy { from('../build/materialpack.zip'); into(layout.buildDirectory.dir('run/clientGameTest/resourcepacks')); rename { 'backrooms-level0.zip' } }
+        copy { from('../build/datapack.zip'); into(layout.buildDirectory.dir('run/clientGameTest')); rename { 'backrooms-datapack.zip' } }
+    }
+}

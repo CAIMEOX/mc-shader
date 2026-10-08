@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "backrooms_test",
+  "version": "0.1.0",
+  "name": "Backrooms Native Tests",
+  "environment": "*",
+  "entrypoints": {"fabric-client-gametest": ["dev.caimeo.backrooms.WorldGenClientTest", "dev.caimeo.backrooms.BackroomsClientTest"]},
+  "mixins": ["backrooms-test.mixins.json"],
+  "depends": {"fabric-api": "*", "minecraft": "26.3"}
+}

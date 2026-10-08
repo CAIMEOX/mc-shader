@@ -1,0 +1,4 @@
+packages: codegen
+
+package backrooms-codegen
+  ghc-options: -Werror
