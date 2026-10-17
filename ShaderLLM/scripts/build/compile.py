@@ -10,6 +10,7 @@ import shutil
 import subprocess
 
 from scripts.common.paths import ROOT
+from scripts.common.gradle import executable_name
 
 
 def compiler():
@@ -18,7 +19,7 @@ def compiler():
     cabal = shutil.which("cabal")
     if not cabal:
         raise RuntimeError("GHC and Cabal are required")
-    binary = out / "qwen-codegen"
+    binary = out / executable_name("qwen-codegen")
     subprocess.run(
         [
             cabal,
@@ -29,7 +30,7 @@ def compiler():
         check=True,
     )
     compiled = subprocess.check_output(
-        [cabal, "list-bin", "exe:qwen-codegen"], cwd=ROOT, text=True
+        [cabal, "list-bin", "exe:qwen-codegen"], cwd=ROOT, text=True, encoding="locale"
     ).strip()
     shutil.copy2(compiled, binary)
     return binary

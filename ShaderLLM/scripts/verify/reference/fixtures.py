@@ -22,7 +22,9 @@ def main():
 
     binary = build()
     tokenizer = Tokenizer.from_file(str(ROOT / "model/tokenizer.json"))
-    config = json.loads((ROOT / "model/tokenizer_config.json").read_text())
+    config = json.loads(
+        (ROOT / "model/tokenizer_config.json").read_text(encoding="utf-8")
+    )
     template = jinja2.Environment().from_string(config["chat_template"])
     render = lambda content: template.render(
         messages=[{"role": "user", "content": content}],
@@ -35,7 +37,9 @@ def main():
     output.mkdir(exist_ok=True)
     (output / "chat.json").write_text(
         json.dumps({"prefix": prefix, "suffix": suffix}, ensure_ascii=False, indent=2)
-        + "\n"
+        + "\n",
+        encoding="utf-8",
+        newline="\n",
     )
     cases = [
         "What is 2 + 2? Answer briefly.",
@@ -64,7 +68,7 @@ def main():
                 ],
                 check=True,
             )
-            value = json.loads(result.read_text())
+            value = json.loads(result.read_text(encoding="utf-8"))
             record["reference"] = value
             record["decoded"] = tokenizer.decode(
                 value["generated"], skip_special_tokens=True
@@ -72,7 +76,9 @@ def main():
             print(i, record["decoded"], value, flush=True)
         manifest.append(record)
     (output / "fixtures.json").write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
     )
 
 

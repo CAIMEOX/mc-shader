@@ -9,15 +9,20 @@ if __package__ in (None, ""):
 from pathlib import Path
 import subprocess
 import json
+import os
+import sys
 
 from scripts.common.paths import ROOT
+from scripts.common.gradle import executable_name
 
 
 def build():
-    config = json.loads((ROOT / "build/model/weights.json").read_text())["config"]
+    config = json.loads(
+        (ROOT / "build/model/weights.json").read_text(encoding="utf-8")
+    )["config"]
     core = (
         (ROOT / "vendor/qwen3.c/runq.c")
-        .read_text()
+        .read_text(encoding="utf-8")
         .replace("1e-6f", "QWEN_RMS_EPS")
         .replace("powf(1e6,", "powf(QWEN_ROPE_THETA,")
     )
@@ -30,15 +35,25 @@ def build():
         + "#define main qwen_upstream_main\n"
         + core
         + "\n#undef main\n"
-        + Path(__file__).with_name("driver.c").read_text()
+        + Path(__file__).with_name("driver.c").read_text(encoding="utf-8")
     )
     out = ROOT / "build"
     out.mkdir(exist_ok=True)
     generated = out / "reference.c"
-    generated.write_text(source)
-    binary = out / "qwen-reference"
+    generated.write_text(source, encoding="utf-8", newline="\n")
+    binary = out / executable_name("qwen-reference")
     subprocess.run(
-        ["cc", "-O3", "-Wno-unknown-pragmas", str(generated), "-o", str(binary)],
+        [
+            os.environ.get("CC", "cc"),
+            "-O3",
+            "-Wno-unknown-pragmas",
+            "-I",
+            str(ROOT / "vendor/qwen3.c"),
+            str(generated),
+            "-o",
+            str(binary),
+        ]
+        + (["-lm"] if sys.platform != "darwin" else []),
         check=True,
     )
     return binary

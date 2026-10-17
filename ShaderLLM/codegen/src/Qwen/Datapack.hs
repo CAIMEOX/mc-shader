@@ -9,12 +9,13 @@ import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
 import Numeric (showHex)
 import Qwen.Limits (maxGeneration)
+import Qwen.TextIO (writeUtf8)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath (takeDirectory, (</>))
 
 compileDatapack :: FilePath -> IO ()
 compileDatapack output = do
-  let write path body = do createDirectoryIfMissing True (takeDirectory (output </> path)); writeFile (output </> path) body
+  let write path body = do createDirectoryIfMissing True (takeDirectory (output </> path)); writeUtf8 (output </> path) body
       function name commands = write ("data/qwen/function/" ++ name ++ ".mcfunction") (unlines commands)
       json s = T.unpack (T.decodeUtf8 (B.toStrict (encode s)))
       color i = "#" ++ replicate (4 - length h) '0' ++ h ++ "00" where h = showHex i ""

@@ -15,6 +15,7 @@ import Qwen.Limits
 import Qwen.Model hiding (matrices, norms)
 import Qwen.Operator
 import Qwen.Shader qualified as Shader
+import Qwen.TextIO (readUtf8, writeUtf8)
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath (takeBaseName, (</>))
 
@@ -154,8 +155,8 @@ compilePipeline model shaders output = do
   let tokenizerVocab = case fromJSON (field tokenizer "vocab_size") of Success n -> n :: Int; Error e -> error e
   unless (tokenizerVocab == vocab_size c) (fail "Tokenizer vocabulary differs from Config")
   createDirectoryIfMissing True output
-  writeFile (output </> "limits.glsl") shaderLimits
-  writeFile (output </> "model.glsl") constants
+  writeUtf8 (output </> "limits.glsl") shaderLimits
+  writeUtf8 (output </> "model.glsl") constants
   B.writeFile
     (output </> "limits.json")
     ( encode
@@ -179,9 +180,9 @@ compilePipeline model shaders output = do
         samplers = ["Control"] ++ inputs op ++ ["Norms" | usesNorms op] ++ ["Weights" ++ show i | i <- [0 .. length (window weights) - 1]]
         file = shaderName name phase slot
     source <- compileOperator shaders op samplers setup (Shader.weightReader layout weights) count
-    writeFile (output </> file ++ ".fsh") (G.renderShader source)
-    writeFile (output </> file ++ "_vertex.vsh") (G.renderShader (Shader.vertex phase op slot))
-  writeFile (output </> "tokenizer_vertex.vsh") (G.renderShader (Shader.vertex 1 Copy 0))
+    writeUtf8 (output </> file ++ ".fsh") (G.renderShader source)
+    writeUtf8 (output </> file ++ "_vertex.vsh") (G.renderShader (Shader.vertex phase op slot))
+  writeUtf8 (output </> "tokenizer_vertex.vsh") (G.renderShader (Shader.vertex 1 Copy 0))
   forM_ passes $ \(Pass fragment vertex ins _) -> do
     programs <- mapM readProgram [vertex ++ ".vsh", fragment ++ ".fsh"]
     either (fail . ((fragment ++ ": ") ++)) pure (G.validateBindings (map inputName ins) programs)
@@ -189,4 +190,4 @@ compilePipeline model shaders output = do
     readProgram file = do
       generated <- doesFileExist (output </> file)
       let path = (if generated then output else shaders) </> file
-      either fail pure . G.parseShader path =<< readFile path
+      either fail pure . G.parseShader path =<< readUtf8 path

@@ -6,6 +6,9 @@ import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import dev.caimeo.qwen.QwenResources;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 
 public final class QwenPlayClient implements ClientModInitializer {
   private Object identity;
@@ -49,13 +52,29 @@ public final class QwenPlayClient implements ClientModInitializer {
         client.options.inactivityFpsLimit().set(
             net.minecraft.client.InactivityFpsLimit.MINIMIZED);
         client.getWindow().setTitle("Qwen3 · Shader Playground");
-        client.player.sendSystemMessage(
-            Component.literal("Qwen: R 提交 qwen:input 的 prompt；/data modify "
-                              + "storage qwen:input prompt set value \"你的问题\""));
+        if (resourcesReady(client))
+          client.player.sendSystemMessage(Component.literal(
+              "Qwen: press R to submit qwen:input.prompt. Set a prompt with /data modify storage qwen:input prompt set value \"Your question\""));
       }
       if (client.gui.screen() == null)
         while (submit.consumeClick())
-          client.player.connection.sendCommand("trigger qwen.action set 1");
+          if (resourcesReady(client))
+            client.player.connection.sendCommand("trigger qwen.action set 1");
     });
+  }
+
+  private boolean resourcesReady(Minecraft client) {
+    try {
+      QwenResources.requireLoaded(client, false);
+      return true;
+    } catch (IllegalStateException error) {
+      client.player.sendSystemMessage(
+          Component
+              .literal(
+                  "Qwen resource pack could not be loaded. Check playground/logs/latest.log. " +
+                  error.getMessage())
+              .withStyle(ChatFormatting.RED));
+      return false;
+    }
   }
 }

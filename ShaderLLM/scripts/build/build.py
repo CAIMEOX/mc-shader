@@ -6,23 +6,12 @@ if __package__ in (None, ""):
 
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from pathlib import Path
-import json
 import shutil
 import subprocess
-import zipfile
 from scripts.build.compile import compiler
+from scripts.build.resources import archive, install_wire, write_pack_metadata
 
 from scripts.common.paths import ROOT
-
-CLIENT = Path.home() / ".gradle/caches/fabric-loom/26.3/minecraft-client.jar"
-
-
-def archive(root, destination):
-    with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED, compresslevel=1) as z:
-        for p in sorted(root.rglob("*")):
-            if p.is_file():
-                z.write(p, p.relative_to(root))
 
 
 def build():
@@ -55,17 +44,7 @@ def build():
         rp / "assets/minecraft/shaders/core",
     ):
         directory.mkdir(parents=True, exist_ok=True)
-    (rp / "pack.mcmeta").write_text(
-        json.dumps(
-            {
-                "pack": {
-                    "description": "Qwen3 shader inference",
-                    "min_format": [97, 1],
-                    "max_format": [97, 1],
-                }
-            }
-        )
-    )
+    write_pack_metadata(rp, "Qwen3 shader inference")
     licenses = rp / "licenses"
     licenses.mkdir(exist_ok=True)
     for source, name in [
@@ -79,8 +58,6 @@ def build():
     for p in (out / "tokenizer").glob("*.png"):
         shutil.copy2(p, textures / p.name)
     shutil.copy2(out / "fonts/glyphs.png", textures / "glyphs.png")
-    shutil.copy2(out / "fonts/wire.json", assets / "font/wire.json")
-    shutil.copy2(out / "fonts/wire.png", assets / "textures/font/wire.png")
     for folder in (ROOT / "shaders", out / "pipeline", out / "include"):
         for p in folder.iterdir():
             if p.suffix in (".fsh", ".vsh", ".glsl"):
@@ -94,37 +71,7 @@ def build():
         out / "pipeline/pipeline.json",
         rp / "assets/minecraft/post_effect/end_of_frame.json",
     )
-    with zipfile.ZipFile(CLIENT) as z:
-        vertex = z.read("assets/minecraft/shaders/core/text.vsh").decode()
-        fragment = z.read("assets/minecraft/shaders/core/text.fsh").decode()
-    declaration = "\nuniform sampler2D Sampler0;\n#include <minecraft:globals.glsl>\nlayout(location=4) flat out ivec3 wire;\n"
-    vertex = vertex.replace(
-        "void main() {", declaration + "void main() {\n    wire=ivec3(-1);"
-    )
-    inject = """
-    ivec2 size=textureSize(Sampler0,0),uv=ivec2(floor(UV0*vec2(size)));
-    ivec4 marker=ivec4(0);
-    for(int y=-1;y<=0;y++)for(int x=-1;x<=0;x++){
-        ivec4 c=ivec4(round(texelFetch(Sampler0,clamp(uv+ivec2(x,y),ivec2(0),size-1),0)*255.));
-        if(c.a==247&&c.b>=235&&c.b<=239)marker=c;
-    }
-    if(marker.a==247){
-        int kind=marker.b,index=(int(round(Color.r*255.))<<8)|int(round(Color.g*255.));
-        int cell=kind==237?0:(kind==236?1:(kind==235?2:3+index));
-        int corner=gl_VertexIndex%4;
-        vec2 offset=vec2(corner>=2?2.:0.,(corner==1||corner==2)?2.:0.);
-        vec2 pixel=vec2((cell%32)*2,(cell/32)*2)+offset;
-        gl_Position=vec4(pixel.x/ScreenSize.x*2.-1.,1.-pixel.y/ScreenSize.y*2.,-1.,1.);
-        wire=kind==239?ivec3(marker.g,marker.r,239):ivec3(index>>8,index&255,kind);
-    }
-"""
-    vertex = vertex.rstrip()[:-1] + inject + "}\n"
-    fragment = fragment.replace(
-        "void main() {",
-        "layout(location=4) flat in ivec3 wire;\nvoid main() {\n    if(wire.z>=235){\n#ifdef OIT_ALPHA_ONLY\n        executeAlphaOnlyPhase(gl_FragCoord.z,1.);\n#else\n        fragColor=vec4(vec3(wire)/255.,1.);\n#endif\n        return;\n    }",
-    )
-    (rp / "assets/minecraft/shaders/core/text.vsh").write_text(vertex)
-    (rp / "assets/minecraft/shaders/core/text.fsh").write_text(fragment)
+    install_wire(rp, out / "fonts")
     archive(rp, out / "resourcepack.zip")
     archive(out / "datapack", out / "datapack.zip")
     print("Built", out / "resourcepack.zip", flush=True)

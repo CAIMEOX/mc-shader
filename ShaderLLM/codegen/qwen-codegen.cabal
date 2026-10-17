@@ -22,6 +22,7 @@ library
     Qwen.Operator
     Qwen.Pipeline
     Qwen.Shader
+    Qwen.TextIO
     Qwen.Tokenizer
     Qwen.Weights
   build-depends:
@@ -55,3 +56,16 @@ test-suite shader-semantics
     pretty,
     directory,
     filepath
+
+test-suite resource-encoding
+  import: defaults
+  type: exitcode-stdio-1.0
+  hs-source-dirs: encoding-test
+  main-is: Main.hs
+  build-depends:
+    qwen-codegen,
+    bytestring,
+    text,
+    directory,
+    filepath,
+    temporary

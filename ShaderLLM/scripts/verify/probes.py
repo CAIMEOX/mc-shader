@@ -38,7 +38,7 @@ def words(a):
 
 def generate(binary, root, tensors, run, material, tokenizer_layout):
     small = root / "sharded"
-    layout = json.loads((small / "model/weights.json").read_text())
+    layout = json.loads((small / "model/weights.json").read_text(encoding="utf-8"))
     # A compact physical texture is assigned a page ID above the signed-int boundary.
     shifted = root / "large-address"
     (shifted / "model/textures").mkdir(parents=True, exist_ok=True)
@@ -65,7 +65,9 @@ def generate(binary, root, tensors, run, material, tokenizer_layout):
             for i in range(34)
         ],
     )
-    (shifted / "model/weights.json").write_text(json.dumps(meta))
+    (shifted / "model/weights.json").write_text(
+        json.dumps(meta), encoding="utf-8", newline="\n"
+    )
     tokenizer_layout(shifted / "tokenizer", meta["config"]["vocab_size"])
     run(binary, "pipeline", shifted / "model", ROOT / "shaders", shifted / "pipeline")
     out = root / "probe-pack"
@@ -83,7 +85,9 @@ def generate(binary, root, tensors, run, material, tokenizer_layout):
                     "max_format": [97, 1],
                 }
             }
-        )
+        ),
+        encoding="utf-8",
+        newline="\n",
     )
     (shader_dir / "include/codec.glsl").write_bytes(
         (ROOT / "shaders/codec.glsl").read_bytes()
@@ -116,9 +120,9 @@ def generate(binary, root, tensors, run, material, tokenizer_layout):
         }
         stage = next(
             p
-            for p in json.loads((model / "pipeline/pipeline.json").read_text())[
-                "passes"
-            ]
+            for p in json.loads(
+                (model / "pipeline/pipeline.json").read_text(encoding="utf-8")
+            )["passes"]
             if p["fragment_shader"] == "qwen:" + stage_name
         )
         # Resolve the actual generated weight bindings, including their page IDs.
@@ -140,11 +144,13 @@ def generate(binary, root, tensors, run, material, tokenizer_layout):
             }
         for kind, extension in [("vertex_shader", "vsh"), ("fragment_shader", "fsh")]:
             src = model / "pipeline" / (stage[kind].split(":")[1] + "." + extension)
-            text = src.read_text().replace("<qwen:", "<qwen_probe:")
-            (shader_dir / (label + "." + extension)).write_text(text)
-        target = json.loads((model / "pipeline/pipeline.json").read_text())["targets"][
-            stage["output"]
-        ]
+            text = src.read_text(encoding="utf-8").replace("<qwen:", "<qwen_probe:")
+            (shader_dir / (label + "." + extension)).write_text(
+                text, encoding="utf-8", newline="\n"
+            )
+        target = json.loads(
+            (model / "pipeline/pipeline.json").read_text(encoding="utf-8")
+        )["targets"][stage["output"]]
         pipeline = {
             "targets": {"result": target},
             "passes": [
@@ -156,7 +162,9 @@ def generate(binary, root, tensors, run, material, tokenizer_layout):
                 }
             ],
         }
-        (effects / (label + ".json")).write_text(json.dumps(pipeline))
+        (effects / (label + ".json")).write_text(
+            json.dumps(pipeline), encoding="utf-8", newline="\n"
+        )
         flat = np.asarray(values, dtype=np.float32).reshape(-1)
         expected.append(
             {
@@ -207,7 +215,7 @@ def generate(binary, root, tensors, run, material, tokenizer_layout):
         {"Input0": scalar_texture("query_rope", query.reshape(1, -1))},
         rotated,
     )
-    runtime = json.loads((small / "pipeline/limits.json").read_text())
+    runtime = json.loads((small / "pipeline/limits.json").read_text(encoding="utf-8"))
     width, height = runtime["cache_width"], runtime["cache_height"]
     ctx = runtime["context_size"]
     cache = np.zeros(width * height, np.float32)
@@ -262,7 +270,9 @@ def generate(binary, root, tensors, run, material, tokenizer_layout):
         {"Input0": texture("head_input", quantized.reshape(1, -1, 4))},
         head_values[:, 0],
     )
-    (root / "probes.json").write_text(json.dumps(expected))
+    (root / "probes.json").write_text(
+        json.dumps(expected), encoding="utf-8", newline="\n"
+    )
     with zipfile.ZipFile(
         ROOT / "build/probes.zip", "w", zipfile.ZIP_DEFLATED, compresslevel=1
     ) as z:

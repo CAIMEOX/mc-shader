@@ -23,11 +23,11 @@ def main():
     )
     args = parser.parse_args()
     executable = compiler()
-    source_config = json.loads((ROOT / "model/config.json").read_text())
+    source_config = json.loads((ROOT / "model/config.json").read_text(encoding="utf-8"))
     manifest = ROOT / "build/model/weights.json"
     changed = not manifest.exists()
     if manifest.exists():
-        compiled = json.loads(manifest.read_text())["config"]
+        compiled = json.loads(manifest.read_text(encoding="utf-8"))["config"]
         changed = any(
             source_config.get(key) != value for key, value in compiled.items()
         )
@@ -50,7 +50,9 @@ def main():
     chat.parent.mkdir(parents=True, exist_ok=True)
     import jinja2
 
-    config = json.loads((ROOT / "model/tokenizer_config.json").read_text())
+    config = json.loads(
+        (ROOT / "model/tokenizer_config.json").read_text(encoding="utf-8")
+    )
     template = jinja2.Environment().from_string(config["chat_template"])
     marker = "QWEN_USER_INPUT"
     text = template.render(
@@ -60,7 +62,9 @@ def main():
     )
     prefix, suffix = text.split(marker)
     chat.write_text(
-        json.dumps({"prefix": prefix, "suffix": suffix}, ensure_ascii=False) + "\n"
+        json.dumps({"prefix": prefix, "suffix": suffix}, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+        newline="\n",
     )
     build()
 

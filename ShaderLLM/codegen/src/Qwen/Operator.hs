@@ -4,6 +4,7 @@ module Qwen.Operator (Operator (..), inputs, usesWeights, usesNorms, compileOper
 
 import Data.Char (toLower)
 import Qwen.GLSL qualified as G
+import Qwen.TextIO (readUtf8)
 import System.FilePath ((</>))
 
 data Operator
@@ -46,10 +47,10 @@ compileOperator :: FilePath -> Operator -> [String] -> [G.Statement] -> [G.Exter
 compileOperator root op samplers setup reader count = do
   let path = root </> "operators" </> map toLower (show op) ++ ".glsl"
       helperPath = root </> "operators/weights.glsl"
-  body <- either fail pure . G.parseBody path =<< readFile path
+  body <- either fail pure . G.parseBody path =<< readUtf8 path
   G.TranslationUnit helper <-
     if op == Gemv
-      then either fail pure . G.parseUnit helperPath =<< readFile helperPath
+      then either fail pure . G.parseUnit helperPath =<< readUtf8 helperPath
       else pure (G.TranslationUnit [])
   pure $
     G.Shader ["qwen:codec.glsl", "qwen:limits.glsl", "qwen:model.glsl"] $

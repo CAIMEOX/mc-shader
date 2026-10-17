@@ -71,7 +71,7 @@ def safetensors(path, tensors):
 
 def fixture(path, c, sharded):
     path.mkdir(parents=True, exist_ok=True)
-    (path / "config.json").write_text(json.dumps(c))
+    (path / "config.json").write_text(json.dumps(c), encoding="utf-8", newline="\n")
     tensors = {
         key: values(shape, i * 7) for i, (key, shape) in enumerate(specs(c).items())
     }
@@ -83,7 +83,7 @@ def fixture(path, c, sharded):
             safetensors(path / name, part)
             mapping.update({k: name for k in part})
         (path / "model.safetensors.index.json").write_text(
-            json.dumps({"weight_map": mapping})
+            json.dumps({"weight_map": mapping}), encoding="utf-8", newline="\n"
         )
     else:
         safetensors(path / "model.safetensors", tensors)
@@ -92,14 +92,18 @@ def fixture(path, c, sharded):
 
 def tokenizer_layout(directory, vocab):
     directory.mkdir(parents=True, exist_ok=True)
-    value = json.loads((ROOT / "build/tokenizer/tokenizer-layout.json").read_text())
+    value = json.loads(
+        (ROOT / "build/tokenizer/tokenizer-layout.json").read_text(encoding="utf-8")
+    )
     value["vocab_size"] = vocab
-    (directory / "tokenizer-layout.json").write_text(json.dumps(value))
+    (directory / "tokenizer-layout.json").write_text(
+        json.dumps(value), encoding="utf-8", newline="\n"
+    )
 
 
 def run(binary, *args, success=True):
     result = subprocess.run(
-        [str(binary), *map(str, args)], text=True, capture_output=True
+        [str(binary), *map(str, args)], text=True, encoding="utf-8", capture_output=True
     )
     if success and result.returncode:
         raise AssertionError(result.stdout + result.stderr)
@@ -167,9 +171,9 @@ def fake_manifest(c, side=8192):
 
 
 def check_pipeline(root, c):
-    layout = json.loads((root / "model/weights.json").read_text())
-    pipeline = json.loads((root / "pipeline/pipeline.json").read_text())
-    runtime = json.loads((root / "pipeline/limits.json").read_text())
+    layout = json.loads((root / "model/weights.json").read_text(encoding="utf-8"))
+    pipeline = json.loads((root / "pipeline/pipeline.json").read_text(encoding="utf-8"))
+    runtime = json.loads((root / "pipeline/limits.json").read_text(encoding="utf-8"))
     n, kv = c["num_hidden_layers"], c["num_key_value_heads"] * c["head_dim"]
     assert runtime["config"] == c
     assert (
@@ -232,7 +236,7 @@ def main():
     a = np.fromfile(single / "model/weights.rgba", ">u4")
     b = np.fromfile(sharded / "model/weights.rgba", ">u4")
     np.testing.assert_array_equal(a, b)
-    compiled = json.loads((sharded / "model/weights.json").read_text())
+    compiled = json.loads((sharded / "model/weights.json").read_text(encoding="utf-8"))
     for matrix in compiled["matrices"]:
         decoded, scale = material(sharded / "model", matrix)
         bound = np.repeat(scale / 2 + 1e-5, 64).reshape(decoded.shape)
@@ -247,7 +251,9 @@ def main():
     check_pipeline(shared, tied)
     assert not any(
         m["name"] == "lm_head.weight"
-        for m in json.loads((shared / "model/weights.json").read_text())["matrices"]
+        for m in json.loads(
+            (shared / "model/weights.json").read_text(encoding="utf-8")
+        )["matrices"]
     )
     with (shared / "model/reference.bin").open("rb") as stream:
         stream.seek(40)
@@ -257,14 +263,14 @@ def main():
         assert struct.unpack("<i", stream.read(4))[0] == 0
     # A malformed index must fail before producing weight resources.
     index = sharded / "source/model.safetensors.index.json"
-    saved = index.read_text()
+    saved = index.read_text(encoding="utf-8")
     value = json.loads(saved)
     value["weight_map"]["model.embed_tokens.weight"] = "missing.safetensors"
-    index.write_text(json.dumps(value))
+    index.write_text(json.dumps(value), encoding="utf-8", newline="\n")
     run(
         binary, "weights-page", sharded / "source", root / "invalid", 128, success=False
     )
-    index.write_text(saved)
+    index.write_text(saved, encoding="utf-8", newline="\n")
     profiles = []
     for label, hidden, ff, layers, heads, tie in [
         ("1.7B", 2048, 6144, 28, 16, True),
@@ -286,7 +292,9 @@ def main():
         }
         case = root / label
         (case / "model").mkdir(parents=True, exist_ok=True)
-        (case / "model/weights.json").write_text(json.dumps(fake_manifest(c)))
+        (case / "model/weights.json").write_text(
+            json.dumps(fake_manifest(c)), encoding="utf-8", newline="\n"
+        )
         tokenizer_layout(case / "tokenizer", c["vocab_size"])
         run(binary, "pipeline", case / "model", ROOT / "shaders", case / "pipeline")
         runtime = check_pipeline(case, c)
@@ -309,7 +317,7 @@ def main():
         **probes,
     }
     (ROOT / "reports/configuration.json").write_text(
-        json.dumps(report, indent=2) + "\n"
+        json.dumps(report, indent=2) + "\n", encoding="utf-8", newline="\n"
     )
     print(report)
 

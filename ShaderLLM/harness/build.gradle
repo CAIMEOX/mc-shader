@@ -10,7 +10,7 @@ dependencies {
 java { toolchain.languageVersion=JavaLanguageVersion.of(25) }
 sourceSets {
     play {
-        compileClasspath += sourceSets.main.compileClasspath
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
         runtimeClasspath += sourceSets.main.runtimeClasspath
     }
 }
@@ -41,9 +41,22 @@ tasks.named('processGametestResources') {
 }
 tasks.named('runClientGameTest') {
     jvmArgs '-Xmx6G'
+    def transportOnly = providers.gradleProperty('qwenTransportOnly').map { it.toBoolean() }.getOrElse(false)
+    systemProperty 'qwen.test.transportOnly', transportOnly
+    systemProperty 'file.encoding', 'UTF-8'
     doFirst {
-        copy { from('../build/resourcepack.zip'); into(layout.buildDirectory.dir('run/clientGameTest/resourcepacks')); rename { 'qwen.zip' } }
-        copy { from('../build/probes.zip'); into(layout.buildDirectory.dir('run/clientGameTest/resourcepacks')); rename { 'qwen-probes.zip' } }
+        copy { from(transportOnly ? '../build/transport-resourcepack.zip' : '../build/resourcepack.zip'); into(layout.buildDirectory.dir('run/clientGameTest/resourcepacks')); rename { 'qwen.zip' } }
+        if (!transportOnly) {
+            copy { from('../build/probes.zip'); into(layout.buildDirectory.dir('run/clientGameTest/resourcepacks')); rename { 'qwen-probes.zip' } }
+        }
         copy { from('../build/datapack.zip'); into(layout.buildDirectory.dir('run/clientGameTest')); rename { 'qwen-datapack.zip' } }
+    }
+}
+['runClientGameTest', 'runPlayClient'].each { name ->
+    tasks.named(name) {
+        def backend = providers.gradleProperty('qwenGraphicsBackend')
+        if (backend.isPresent()) {
+            args '--graphicsBackend', backend.get()
+        }
     }
 }

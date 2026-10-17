@@ -9,32 +9,30 @@ The project includes a Haskell asset compiler, ready-to-build resource and data 
 - Minecraft Java Edition **26.3**, provided by the development harness.
 - **GHC 9.12.2** and **Cabal** for the asset compiler.
 - **Python 3.11+** with `numpy`, `tokenizers`, `huggingface_hub`, and `jinja2`.
-- **Java 25**, Git, and a C compiler (`cc`) for the harness and reference tests.
+- **Java 25**, Git, and a Clang/GCC-compatible C compiler (`cc`) for the harness and reference tests. Set `CC` to select another compiler executable.
 
-The supplied launcher is configured for Apple Silicon macOS with Homebrew Java at `/opt/homebrew/opt/openjdk@25`. Java launch paths are defined in `scripts/common/gradle.py`. Allow several gigabytes of disk space for model weights, Minecraft dependencies, and generated assets.
+The launcher uses `JAVA_HOME` or Java on `PATH`. On macOS, it can also discover Java 25 through `java_home` or Homebrew. Set `JAVA_HOME` to your Java 25 installation if another Java version is the default. The launcher includes Windows and POSIX file locking; native graphics verification currently covers OpenGL and Vulkan on Apple Silicon macOS. Allow several gigabytes of disk space for model weights, Minecraft dependencies, and generated assets.
 
 ## Build and run
 
-Run the following commands from the repository root to prepare the Python environment and Haskell dependencies:
+Run these commands from the directory containing this README to prepare the Python environment and Haskell dependencies:
 
 ```sh
-cd qwen
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install numpy tokenizers huggingface_hub jinja2
 cabal update
 ```
 
+On Windows PowerShell, activate the environment with `.venv\Scripts\Activate.ps1` and set Java with `$env:JAVA_HOME = "C:\path\to\jdk-25"`. Use `python` in place of `python3` if that is your interpreter command.
+
 Prepare the Minecraft dependencies and assets once, with network access:
 
 ```sh
-export JAVA_HOME=/opt/homebrew/opt/openjdk@25
-"$JAVA_HOME/bin/java" -cp harness/gradle/wrapper/gradle-wrapper.jar \
-  org.gradle.wrapper.GradleWrapperMain -p harness \
-  configureClientLaunch compileGametestJava compilePlayJava
+python3 scripts/build/setup.py
 ```
 
-The Python launch scripts use Gradle's offline mode after this setup. From the same `qwen/` directory, download the model, build the packs, run verification, and open the playground:
+The Python launch scripts use Gradle's offline mode after this setup. They respect `GRADLE_USER_HOME`; `QWEN_MINECRAFT_CLIENT` can select an existing Minecraft 26.3 client JAR. From the same directory, download the model, build the packs, run verification, and open the playground:
 
 ```sh
 python3 scripts/build/fetch.py
@@ -42,6 +40,8 @@ python3 scripts/build/prepare.py
 python3 scripts/verify/run_tests.py
 python3 scripts/run/play.py
 ```
+
+Use `--backend opengl` or `--backend vulkan` with the verification and play scripts to select a graphics backend. A backend-specific play session requires a successful full test run for that backend.
 
 `fetch.py` downloads the model, tokenizer, font assets, and C reference implementation. `prepare.py` compiles the assets and creates `build/resourcepack.zip` and `build/datapack.zip`. Verification opens a visible Minecraft window and creates the world used by the playground.
 
@@ -99,10 +99,20 @@ At build time, Haskell compiles the weights, lookup tables, and fonts, and gener
 Run the complete test suite with:
 
 ```sh
-python3 scripts/verify/run_tests.py
+python3 scripts/verify/run_tests.py --backend both
 ```
 
-It checks shader generation, checkpoint conversion, tokenization, GPU operators, and complete responses against the C reference implementation. Results are written to `reports/native.json` and `reports/configuration.json`, with screenshots in `reports/screenshots/`.
+It checks UTF-8 resource generation, shader generation, checkpoint conversion, tokenization, GPU operators, and complete responses against the C reference implementation. Results are written to `reports/native.json` and `reports/configuration.json`. Backend reports, logs, and screenshots are stored in `reports/inference-opengl/` and `reports/inference-vulkan/`.
+
+To check the pixel transport before downloading model weights, run this after the dependency setup:
+
+```sh
+python3 scripts/verify/run_tests.py --transport-only --backend both
+```
+
+This builds a small pack using the production font, data pack, and pixel decoder. It verifies Unicode characters, byte boundaries, request-number rollover, empty prompts, and the maximum prompt length. Reports are stored in `reports/transport-opengl/` and `reports/transport-vulkan/`. Use a single `--backend` value on systems that support only one backend.
+
+The harness checks that the required resource packs and shader overrides are active immediately after reload. The playground reports resource-loading failures before accepting a prompt. Windows/NVIDIA graphics still require a native test run on that hardware.
 
 Qwen3-0.6B achieves approximately **6.6 generated tokens per second** on an Apple M3 Max at 1280 × 720 with a 60 FPS cap. The English, Chinese, and 40-token generation fixtures match the C reference. Performance depends on hardware, frame rate, and prompt length.
 
@@ -119,7 +129,7 @@ The exporter also supports larger Dense Qwen3 configurations and sharded safeten
 | `build/` | Generated textures, packs, and reference fixtures |
 | `playground/` | Interactive world and launcher logs |
 
-Haskell dependencies are managed by `cabal.project` and `cabal.project.freeze`. For a quick shader-generation check, run `cabal test shader-semantics`. Source formatting uses Ruff, Ormolu, and clang-format through `python3 scripts/dev/format.py`.
+Haskell dependencies are managed by `cabal.project` and `cabal.project.freeze`. For quick compiler checks, run `cabal test shader-semantics resource-encoding`. Python build and launcher checks run with `python3 -m unittest discover -s scripts/tests`. Source formatting uses Ruff, Ormolu, and clang-format through `python3 scripts/dev/format.py`.
 
 ## Credits
 

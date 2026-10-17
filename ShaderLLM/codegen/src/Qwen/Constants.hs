@@ -8,6 +8,7 @@ import Data.ByteString.Lazy qualified as B
 import Data.Char (ord)
 import Data.Text qualified as T
 import Qwen.GLSL qualified as G
+import Qwen.TextIO (writeUtf8)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>))
 
@@ -24,7 +25,7 @@ compileConstants tokenizer chat output = do
       constant name value = G.constant G.Int name (G.int (parse value :: Int))
       array name xs = G.constantArray G.Int name (map G.int xs)
   createDirectoryIfMissing True output
-  writeFile (output </> "tokenizer_constants.glsl") $
+  writeUtf8 (output </> "tokenizer_constants.glsl") $
     G.renderUnit $
       G.TranslationUnit
         [ constant "MERGE_PROBES" (get t "merge_probe"),

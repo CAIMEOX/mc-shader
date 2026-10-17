@@ -36,7 +36,7 @@ def main():
         ["git", "-C", str(root), "rev-parse", "HEAD"], text=True
     ).strip()
     pin = ROOT / "model-source.json"
-    previous = json.loads(pin.read_text()) if pin.exists() else {}
+    previous = json.loads(pin.read_text(encoding="utf-8")) if pin.exists() else {}
     model_id = args.model or previous.get("model", MODEL_ID)
     revision = args.revision or (
         previous.get("revision") if previous.get("model") == model_id else None
@@ -54,7 +54,9 @@ def main():
                 },
                 indent=2,
             )
-            + "\n"
+            + "\n",
+            encoding="utf-8",
+            newline="\n",
         )
     print("Reference commit:", commit, "model revision:", revision, flush=True)
     snapshot_download(
@@ -97,7 +99,9 @@ def main():
         for p in (ROOT / "model").iterdir()
         if p.is_file() and p.name != "files.json"
     }
-    (ROOT / "model/files.json").write_text(json.dumps(files, indent=2) + "\n")
+    (ROOT / "model/files.json").write_text(
+        json.dumps(files, indent=2) + "\n", encoding="utf-8", newline="\n"
+    )
     print(
         "Model files verified:", [(n, v["bytes"]) for n, v in files.items()], flush=True
     )

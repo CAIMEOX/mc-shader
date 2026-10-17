@@ -5,6 +5,7 @@ import Data.Either (isLeft)
 import Qwen.GLSL qualified as G
 import Qwen.Operator (compileOperator, inputs, usesNorms, usesWeights)
 import Qwen.Shader qualified as Shader
+import Qwen.TextIO (readUtf8)
 import System.Directory (doesDirectoryExist, listDirectory)
 import System.FilePath (takeExtension, (</>))
 
@@ -48,7 +49,7 @@ main = do
     assert (show op ++ ": sampler interface") (G.validateBindings samplers [ast] == Right ())
   files <- listDirectory root
   forM_ [root </> file | file <- files, takeExtension file `elem` [".vsh", ".fsh", ".glsl"]] $ \path -> do
-    ast <- either fail pure . G.parseShader path =<< readFile path
+    ast <- either fail pure . G.parseShader path =<< readUtf8 path
     roundTrip path ast
   putStrLn "Shader AST round-trips, operator composition and binding checks passed."
   where

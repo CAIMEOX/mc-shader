@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Qwen.Font (compileFonts) where
+module Qwen.Font (compileFonts, compileWire) where
 
 import Codec.Picture
 import Data.Aeson
@@ -18,8 +18,8 @@ import Qwen.Tokenizer (uintTexture)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>))
 
-compileFonts :: FilePath -> FilePath -> IO ()
-compileFonts model output = do
+compileWire :: FilePath -> IO ()
+compileWire output = do
   createDirectoryIfMissing True output
   let cps = [cp | cp <- [32 .. 65535], cp < 0xd800 || cp > 0xdfff]
       rows = map (\row -> row ++ replicate (256 - length row) 0) (chunks 256 cps)
@@ -58,6 +58,13 @@ compileFonts model output = do
             ]
         )
     )
+  where
+    chunks _ [] = []
+    chunks n xs = let (a, b) = splitAt n xs in a : chunks n b
+
+compileFonts :: FilePath -> FilePath -> IO ()
+compileFonts model output = do
+  compileWire output
   bytes <- BS.readFile (model </> "unifont.hex")
   let glyphs = M.fromList [parseLine line | line <- BC.lines bytes, not (BS.null line)]
       wordCount = 0x110000 * 8
@@ -69,8 +76,6 @@ compileFonts model output = do
   spec <- uintTexture (output </> "glyphs.png") 4096 glyphWords
   BL.writeFile (output </> "font-layout.json") (encode spec)
   where
-    chunks _ [] = []
-    chunks n xs = let (a, b) = splitAt n xs in a : chunks n b
     hex s = case readHex s of [(x, "")] -> x; _ -> error "Invalid unihex glyph"
     parseLine line = case BC.split ':' line of
       [a, b] ->

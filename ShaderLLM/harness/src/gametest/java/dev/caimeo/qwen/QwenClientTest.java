@@ -5,10 +5,14 @@ import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.minecraft.world.level.storage.LevelResource;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
+import java.util.function.Consumer;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 public final class QwenClientTest implements FabricClientGameTest {
+  private final boolean transportOnly = Boolean.getBoolean("qwen.test.transportOnly");
   private final Map<String, Object> report = new LinkedHashMap<>();
   private final List<Map<String, Object>> checks = new ArrayList<>();
   private void persist() {
@@ -28,14 +32,21 @@ public final class QwenClientTest implements FabricClientGameTest {
     report.put("result", "running");
     report.put("checks", checks);
     report.put("presentation", "visible native window");
+    report.put("mode", transportOnly ? "transport" : "inference");
     persist();
     try {
       var reload = context.computeOnClient(mc -> {
+        var device = RenderSystem.getDevice().getDeviceInfo();
+        report.put("graphics_backend", device.backendName());
+        report.put("device", device.name());
+        report.put("depth_zero_to_one", device.isZZeroToOne());
         var packs = mc.getResourcePackRepository();
         packs.reload();
-        var selected = new ArrayList<>(packs.getSelectedIds());
+        var selected = new LinkedHashSet<>(packs.getSelectedIds());
+        selected.remove("file/qwen-probes.zip");
         selected.add("file/qwen.zip");
-        selected.add("file/qwen-probes.zip");
+        if (!transportOnly)
+          selected.add("file/qwen-probes.zip");
         packs.setSelected(selected);
         mc.options.renderDistance().set(3);
         mc.options.enableVsync().set(false);
@@ -47,9 +58,25 @@ public final class QwenClientTest implements FabricClientGameTest {
         mc.getWindow().setTitle("Qwen3 · visible shader benchmark");
         return mc.reloadResourcePacks();
       });
-      context.waitFor(mc -> reload.isDone(), 1800);
+      context.waitFor(mc -> {
+        report.put("resource_packs",
+                   new ArrayList<>(mc.getResourcePackRepository().getSelectedIds()));
+        QwenResources.requireSelected(mc, !transportOnly);
+        return reload.isDone();
+      }, 1800);
       reload.join();
-      context.waitFor(mc -> mc.gui.overlay() == null, 600);
+      context.waitFor(mc -> {
+        report.put("resource_packs",
+                   new ArrayList<>(mc.getResourcePackRepository().getSelectedIds()));
+        QwenResources.requireSelected(mc, !transportOnly);
+        return mc.gui.overlay() == null;
+      }, 600);
+      context.runOnClient(mc -> {
+        var selected = mc.getResourcePackRepository().getSelectedIds();
+        report.put("resource_packs", new ArrayList<>(selected));
+        QwenResources.requireLoaded(mc, !transportOnly);
+      });
+      persist();
       try (var world = context.worldBuilder().create()) {
         var server = world.getServer();
         var loading = server.computeOnServer(s -> {
@@ -71,10 +98,17 @@ public final class QwenClientTest implements FabricClientGameTest {
         server.runCommand("tp @a 0 100 0 0 0");
         context.waitTicks(30);
         world.getConnection().waitForChunksRender(false, 400);
+        if (transportOnly) {
+          verifyTransport(context, server::runCommand);
+          report.put("result", "passed");
+          persist();
+          return;
+        }
         server.runCommand("data modify storage qwen:input max_tokens set value 8");
         JsonArray fixtures;
         try (var reader = new InputStreamReader(
-                 QwenClientTest.class.getResourceAsStream("/fixtures.json"))) {
+                 QwenClientTest.class.getResourceAsStream("/fixtures.json"),
+                 StandardCharsets.UTF_8)) {
           fixtures = JsonParser.parseReader(reader).getAsJsonArray();
         }
         for (int which = 0; which < fixtures.size(); which++) {
@@ -202,7 +236,8 @@ public final class QwenClientTest implements FabricClientGameTest {
         checks.add(
             Map.of("case", "generation_capacity", "max_tokens", capacity.word(9)));
         try (var reader = new InputStreamReader(
-                 QwenClientTest.class.getResourceAsStream("/probes.json"))) {
+                 QwenClientTest.class.getResourceAsStream("/probes.json"),
+                 StandardCharsets.UTF_8)) {
           for (var entry : JsonParser.parseReader(reader).getAsJsonArray()) {
             var probe = entry.getAsJsonObject();
             String effect = probe.get("effect").getAsString();
@@ -240,6 +275,47 @@ public final class QwenClientTest implements FabricClientGameTest {
       } catch (Throwable ignored) {
       }
       throw new RuntimeException(e);
+    }
+  }
+
+  private void verifyTransport(ClientGameTestContext context,
+                               Consumer<String> command) {
+    record Request(String text, int limit) {}
+    var requests = List.of(
+        new Request("Byte edges: \u007f\u0080\u00ff\u0100\u7fff\u8000\uffff", 256),
+        new Request("中文\0\n\tCafe\u0301 and 각", 8), new Request("x".repeat(128), 1),
+        new Request("", 255));
+    command.accept("scoreboard players set #epoch qwen 254");
+    int epoch = 254;
+    for (var request : requests) {
+      epoch = (epoch + 1) % 256;
+      command.accept("data modify storage qwen:input prompt set value " +
+                     new Gson().toJson(request.text()));
+      command.accept("data modify storage qwen:input max_tokens set value " +
+                     request.limit());
+      command.accept("execute as @a at @s run function qwen:submit");
+      GpuReadback.Image packet = null;
+      for (int tick = 0; tick < 120; tick++) {
+        context.waitTicks(1);
+        packet = GpuReadback.read(context, "packet");
+        if (packet != null && packet.word(0) == epoch)
+          break;
+      }
+      var words = new ArrayList<Long>();
+      if (packet != null)
+        for (int i = 0; i < request.text().length() + 3; i++)
+          words.add(packet.word(i));
+      report.put("packetDebug", words);
+      persist();
+      check(packet != null && packet.word(0) == epoch,
+            "Pixel request not received for epoch " + epoch);
+      check(packet.word(1) == request.text().length(), "Pixel prompt length");
+      check(packet.word(2) == request.limit(), "Pixel generation limit");
+      for (int i = 0; i < request.text().length(); i++)
+        check(packet.word(i + 3) == request.text().charAt(i), "Pixel code point " + i);
+      checks.add(Map.of("case", "pixel_transport", "epoch", epoch, "codepoints",
+                        request.text().length(), "max_tokens", request.limit()));
+      persist();
     }
   }
 }
