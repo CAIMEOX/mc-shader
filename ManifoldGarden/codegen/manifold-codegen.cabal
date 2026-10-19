@@ -1,0 +1,58 @@
+cabal-version: 3.0
+name: manifold-codegen
+version: 0.1.0.0
+build-type: Simple
+
+common defaults
+  default-language: GHC2021
+  ghc-options: -Wall -Werror -O1
+  build-depends: base >=4.18 && <5
+
+library
+  import: defaults
+  hs-source-dirs: src
+  exposed-modules:
+    Manifold.Gravity
+    Manifold.Stage
+    Manifold.Stage.Collision
+    Manifold.Pack
+    Manifold.Pipeline
+    Manifold.Program
+    Manifold.Protocol
+    Manifold.Quality
+    Manifold.Scene
+    Manifold.Objects
+    Manifold.Joinery
+    Manifold.ThreeRings
+  other-modules:
+    Manifold.DataPack
+    Manifold.Gravity.DataPack
+    Manifold.Hybrid.DataPack
+    Manifold.Atrium.DataPack
+    Manifold.Level.DataPack
+    Manifold.Joinery.DataPack
+    Manifold.Joinery.Render
+    Manifold.Joinery.Spatial
+    Manifold.ThreeRings.DataPack
+    Manifold.Scene.DataPack
+    Manifold.Objects.DataPack
+    Manifold.Rooms.DataPack
+    Manifold.Runtime
+    Manifold.Circuits.DataPack
+    Manifold.Json
+    Manifold.Messages
+  build-depends: bytestring, directory, filepath, containers
+
+executable manifold-codegen
+  import: defaults
+  main-is: Main.hs
+  hs-source-dirs: app
+  build-depends: manifold-codegen
+
+test-suite semantics
+  import: defaults
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs: test
+  other-modules: GravitySpec, StageSpec, StageCollisionSpec, ObjectsSpec, JoinerySpec
+  build-depends: manifold-codegen, containers

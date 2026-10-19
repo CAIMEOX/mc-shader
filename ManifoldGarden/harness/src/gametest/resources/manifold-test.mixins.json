@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "dev.caimeo.manifold.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "PostChainAccess",
+    "MinecraftFrames",
+    "ClientMessages"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,4 @@
+packages: codegen
+
+package manifold-codegen
+  ghc-options: -Werror

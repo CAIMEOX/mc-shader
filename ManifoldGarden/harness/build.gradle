@@ -1,0 +1,32 @@
+plugins { id 'net.fabricmc.fabric-loom' version '1.17.13' }
+version = '0.1.0'
+group = 'dev.caimeo.manifold'
+repositories { mavenCentral() }
+dependencies {
+    minecraft 'com.mojang:minecraft:26.3'
+    implementation 'net.fabricmc:fabric-loader:0.19.5'
+    implementation 'net.fabricmc.fabric-api:fabric-api:0.160.4+26.3'
+}
+java { toolchain.languageVersion = JavaLanguageVersion.of(25) }
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = 'manifold-test'
+        enableGameTests = false
+        enableClientGameTests = true
+        eula = true
+    }
+}
+tasks.named('processGametestResources') { from('../build/manifold-build.json') }
+tasks.named('runClientGameTest') {
+    doFirst {
+        def options = layout.buildDirectory.file('run/clientGameTest/options.txt').get().asFile
+        def current = options.exists() ? options.readLines().findAll { !it.startsWith('enableVsync:') && !it.startsWith('inactivityFpsLimit:') } : []
+        options.parentFile.mkdirs()
+        options.text = (current + ['enableVsync:false', 'inactivityFpsLimit:"minimized"']).join('\n') + '\n'
+        copy { from('../build/resourcepack-test.zip'); into(layout.buildDirectory.dir('run/clientGameTest/resourcepacks')); rename { 'manifold.zip' } }
+        copy { from('../build/resourcepack.zip'); into(layout.buildDirectory.dir('run/clientGameTest/resourcepacks')); rename { 'manifold-play.zip' } }
+        copy { from('../build/datapack.zip'); into(layout.buildDirectory.dir('run/clientGameTest')); rename { 'manifold-datapack.zip' } }
+        copy { from('../build/launcher.zip'); into(layout.buildDirectory.dir('run/clientGameTest')); rename { 'manifold-launch-datapack.zip' } }
+    }
+}
