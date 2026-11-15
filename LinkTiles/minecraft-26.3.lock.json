@@ -1,0 +1,11 @@
+{
+  "minecraftVersion": "26.3",
+  "dataPackFormat": [121, 0],
+  "javaMajor": 25,
+  "server": {
+    "url": "https://piston-data.mojang.com/v1/objects/33680f5f2ac32864d6d7cf5e56a705fdb3e05f4c/server.jar",
+    "sha1": "33680f5f2ac32864d6d7cf5e56a705fdb3e05f4c",
+    "size": 62294556
+  },
+  "versionMetadata": "https://piston-meta.mojang.com/v1/packages/96c00d95a31328714d3811cfade2804bb050e455/26.3.json"
+}

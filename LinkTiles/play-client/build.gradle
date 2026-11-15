@@ -1,0 +1,32 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version '1.17.13'
+}
+
+version = '0.1.0'
+group = 'dev.caimeo.linktiles'
+
+repositories { mavenCentral() }
+
+def targetVersion = new groovy.json.JsonSlurper()
+    .parse(file('../minecraft-26.3.lock.json')).minecraftVersion
+
+dependencies {
+    minecraft "com.mojang:minecraft:${targetVersion}"
+    implementation 'net.fabricmc:fabric-loader:0.19.5'
+    implementation 'net.fabricmc.fabric-api:fabric-api:0.160.4+26.3'
+}
+
+java { toolchain.languageVersion = JavaLanguageVersion.of(25) }
+
+loom {
+    runs {
+        client {
+            runDir '../.lake/play'
+            programArgs '--username', 'LinkTilesPlayer', '--uuid', '0aa27d8b-d757-4b6e-8d4b-c2fa76c352d0',
+                '--width', '1280', '--height', '900'
+            if (providers.gradleProperty('playSmoke').isPresent()) {
+                vmArg '-Dlinktiles.smoke=true'
+            }
+        }
+    }
+}

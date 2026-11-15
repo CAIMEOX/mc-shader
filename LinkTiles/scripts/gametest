@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+root="$PWD"
+mode="${1:-default}"
+case "$mode" in
+  default|--stack) ;;
+  *) echo "usage: scripts/gametest [--stack]"; exit 2 ;;
+esac
+java_bin="${LINK_TILES_JAVA:-java}"
+javac_bin="${LINK_TILES_JAVAC:-${java_bin%java}javac}"
+server="${LINK_TILES_SERVER_JAR:-$root/.lake/minecraft/server-26.3.jar}"
+bundle="$root/.lake/minecraft/bundler-26.3"
+if ! command -v "$java_bin" >/dev/null || [[ ! -f "$server" ]]; then
+  echo "Set LINK_TILES_JAVA and LINK_TILES_SERVER_JAR using minecraft-26.3.lock.json."
+  exit 2
+fi
+expected="$(jq -r .server.sha1 minecraft-26.3.lock.json)"
+[[ "$(shasum -a 1 "$server" | awk '{print $1}')" == "$expected" ]]
+"$java_bin" -DbundlerMainClass= -DbundlerRepoDir="$bundle" -jar "$server"
+classpath="$bundle/versions/26.3/server-26.3.jar"
+while IFS= read -r jar; do classpath="$classpath:$jar"; done \
+  < <(rg --files --hidden --no-ignore "$bundle/libraries" -g '*.jar')
+lake build link-tiles-test
+run="$(mktemp -d "$root/.lake/gametest.XXXXXX")"
+mkdir -p "$run/packs" "$run/classes"
+cp -R integration/driver "$run/packs/driver"
+if [[ "$mode" == --stack ]]; then
+  lake env .lake/build/bin/link-tiles-test "$run/packs/link-tiles" stack
+else
+  lake env .lake/build/bin/link-tiles-test "$run/packs/link-tiles"
+fi
+"$javac_bin" -cp "$classpath" -d "$run/classes" integration/Acceptance.java
+echo "LinkTiles GameTest artifacts: $run"
+cd "$run"
+if ! "$java_bin" -cp "$run/classes:$classpath" linktiles.integration.Acceptance \
+    --packs "$run/packs" --tests link_tiles_test:game --report "$run/report.xml" \
+    --universe "$run/universe" --verify false --repeatCount 1 >"$run/server.log" 2>&1; then
+  tail -n 60 "$run/server.log"
+  exit 1
+fi
+if rg -q 'Failed to load function|Command execution stopped due to limit|Serialization errors' "$run/server.log"; then
+  rg 'Failed to load function|Command execution stopped due to limit|Serialization errors' "$run/server.log"
+  exit 1
+fi
+rg 'LINK_TILES|tests passed|TESTS|failed' "$run/server.log" | tail -n 20

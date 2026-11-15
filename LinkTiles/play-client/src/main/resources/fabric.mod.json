@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "link_tiles_play",
+  "version": "0.1.0",
+  "name": "LinkTiles Playground",
+  "environment": "client",
+  "entrypoints": {"client": ["dev.caimeo.linktiles.PlayClient"]},
+  "depends": {"fabricloader": ">=0.19.5", "fabric-api": "*", "minecraft": "26.3", "java": ">=25"}
+}

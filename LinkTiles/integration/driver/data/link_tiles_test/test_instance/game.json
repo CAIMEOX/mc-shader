@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:function",
+  "function": "link_tiles_test:game",
+  "environment": "minecraft:default",
+  "structure": "link_tiles_test:room",
+  "max_ticks": 300,
+  "setup_ticks": 3,
+  "required": true
+}
